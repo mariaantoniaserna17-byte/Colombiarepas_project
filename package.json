@@ -1,0 +1,39 @@
+{
+  "name": "arepas-ecommerce-backend",
+  "version": "1.0.0",
+  "description": "Plataforma integral de comercio electrónico y gestión de pedidos para venta de alimentos con Node.js, Express y SQL Server",
+  "main": "server.js",
+  "scripts": {
+    "build:css": "tailwindcss -i ./public/css/tailwind.input.css -o ./public/css/tailwind.css --minify",
+    "prestart": "npm run build:css",
+    "start": "node server.js",
+    "predev": "npm run build:css",
+    "dev": "nodemon server.js",
+    "migrate": "node database/migrate.js"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "sql-server",
+    "ecommerce",
+    "arepas",
+    "rest-api"
+  ],
+  "author": "Antigravity Architect",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mssql": "^10.0.2",
+    "nodemailer": "^6.9.13",
+    "pdfkit": "^0.15.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0",
+    "tailwindcss": "^3.4.17"
+  }
+}

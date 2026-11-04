@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arepas Gourmet Express | Tienda & Pedidos Online</title>
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🫓</text></svg>">
+</head>
+<body class="bg-amber-50/30 text-gray-800 min-h-screen flex flex-col antialiased">
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col space-y-2 max-w-sm w-full pointer-events-auto"></div>
+
+  <!-- HEADER / NAVBAR -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-amber-100 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchView('catalog')">
+        <span class="text-3xl">🫓</span>
+        <div>
+          <h1 class="text-xl font-extrabold text-amber-800 tracking-tight leading-none">Colombiarepas</h1>
+          <span class="text-xs font-semibold text-amber-600 tracking-wider uppercase">Sabor Tradicional</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="hidden md:flex items-center space-x-8">
+        <button onclick="switchView('catalog')" data-view="catalog" class="nav-link text-amber-600 font-bold border-b-2 border-amber-600 pb-1">
+          Catálogo & Menú
+        </button>
+        <button onclick="switchView('reviews')" data-view="reviews" class="nav-link text-gray-600 hover:text-amber-600 font-medium pb-1">
+          Opiniones & Sugerencias
+        </button>
+        <button id="nav-orders-link" onclick="switchView('orders')" data-view="orders" class="nav-link hidden text-gray-600 hover:text-amber-600 font-medium pb-1">
+          Mis Pedidos
+        </button>
+        <button id="nav-admin-link" onclick="switchView('admin')" data-view="admin" class="nav-link hidden text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+           Panel Admin
+        </button>
+      </nav>
+
+      <!-- Cart Button & User Auth -->
+      <div class="flex items-center space-x-4">
+        <!-- Cart Drawer Button -->
+        <button onclick="openCartDrawer()" class="relative p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 transition active:scale-95" title="Ver carrito">
+          <span class="text-xl">🛒</span>
+          <span id="cart-badge" class="hidden">0</span>
+        </button>
+
+        <!-- Auth State Guest -->
+        <div id="nav-guest-box" class="flex items-center space-x-2">
+          <button onclick="openAuthModal(false)" class="text-sm font-semibold text-gray-700 hover:text-amber-700 px-3 py-2 rounded-xl transition">
+            Iniciar Sesión
+          </button>
+          <button onclick="openAuthModal(true)" class="text-sm font-bold bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-xl shadow-sm transition active:scale-95">
+            Registrarme
+          </button>
+        </div>
+
+        <!-- Auth State User -->
+        <div id="nav-user-box" class="hidden flex items-center space-x-3">
+          <div class="text-right hidden sm:block">
+            <span id="nav-user-name" class="block text-sm font-bold text-gray-800 leading-tight">Usuario</span>
+            <span class="text-xs text-emerald-600 font-medium">● En línea</span>
+          </div>
+          <button onclick="handleLogout()" class="p-2 text-gray-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Cerrar Sesión">
+             Salir
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT VIEWS -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ============================================== -->
+    <!-- VIEW 1: CATÁLOGO Y GESTIÓN DE PRODUCTOS       -->
+    <!-- ============================================== -->
+    <section id="view-catalog" class="view-section space-y-8">
+      
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-r from-amber-600 via-amber-500 to-orange-500 rounded-3xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden">
+        <div class="max-w-2xl space-y-4 relative z-10">
+          <span class="bg-amber-800/40 text-amber-100 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">Arepas deliciosas</span>
+          <h2 class="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Escoge tus arepas favorita</h2>
+          <p class="text-amber-50 text-sm sm:text-base font-medium">Arepas ricas para acompañar tus comidas. Pídelas aquí escogiendo la que más te guste</p>
+        </div>
+        <div class="absolute -right-10 -bottom-10 text-9xl opacity-20 pointer-events-none select-none">🫓</div>
+      </div>
+
+      <!-- Barra de Filtros y Búsqueda -->
+      <div class="bg-white p-4 sm:p-6 rounded-2xl border border-amber-100 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <!-- Categorías Píldoras -->
+          <div id="categories-container" class="flex flex-wrap gap-2">
+            <!-- Renderizado dinámicamente -->
+          </div>
+
+          <!-- Input Búsqueda -->
+          <div class="relative w-full md:w-72">
+            <input type="text" id="search-input" placeholder="Buscar arepa, combo..." class="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 text-sm">
+            <span class="absolute left-3 top-2.5 text-gray-400 text-sm">🔍</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid de Productos -->
+      <div id="products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 2: OPINIONES Y COMENTARIOS (MÓDULO 4)     -->
+    <!-- ============================================== -->
+    <section id="view-reviews" class="view-section hidden space-y-8">
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-sm">
+        <div class="max-w-xl mx-auto text-center space-y-2 mb-8">
+          <h2 class="text-2xl font-extrabold text-gray-900">Muro de Sugerencias y Experiencias</h2>
+          <p class="text-gray-500 text-sm">Tu opinión nos ayuda a perfeccionar nuestras recetas y servicio. Como autor, siempre podrás editar o retirar tu comentario.</p>
+        </div>
+
+        <!-- Formulario Crear Comentario -->
+        <form onsubmit="handleCreateReview(event)" class="max-w-2xl mx-auto bg-amber-50/50 p-6 rounded-2xl border border-amber-200 space-y-4 mb-10">
+          <h3 class="font-bold text-gray-900 text-sm">Deja tu recomendación o calificación</h3>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Calificación en estrellas</label>
+            <select id="review-rating" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-amber-500">
+              <option value="5">⭐⭐⭐⭐⭐ Excelente (5 estrellas)</option>
+              <option value="4">⭐⭐⭐⭐ Muy Buena (4 estrellas)</option>
+              <option value="3">⭐⭐⭐ Aceptable (3 estrellas)</option>
+              <option value="2">⭐⭐ Regular (2 estrellas)</option>
+              <option value="1">⭐ Mala (1 estrella)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-600 mb-1">Tu experiencia o sugerencia</label>
+            <textarea id="review-text" rows="3" required placeholder="Cuéntanos qué te pareció el sabor, los toppings o el tiempo de entrega..." class="w-full p-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500"></textarea>
+          </div>
+          <button type="submit" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-sm transition shadow-sm">
+            Publicar Comentario
+          </button>
+        </form>
+
+        <!-- Lista de Comentarios -->
+        <div id="reviews-container" class="max-w-2xl mx-auto space-y-4">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 3: MIS PEDIDOS (HISTORIAL & FACTURAS)     -->
+    <!-- ============================================== -->
+    <section id="view-orders" class="view-section hidden space-y-6">
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-amber-100 shadow-sm max-w-4xl mx-auto">
+        <h2 class="text-2xl font-extrabold text-gray-900 mb-2">Mis Pedidos Realizados</h2>
+        <p class="text-gray-500 text-sm mb-6">Consulta el estado de tus compras y descarga tus facturas electrónicas en formato PDF.</p>
+        <div id="orders-list-container" class="space-y-4">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================== -->
+    <!-- VIEW 4: PANEL DE ADMINISTRACIÓN (MÓDULO 5)     -->
+    <!-- ============================================== -->
+    <section id="view-admin" class="view-section hidden space-y-6">
+      <div class="bg-white p-6 sm:p-8 rounded-3xl border border-purple-100 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
+          <div>
+            <span class="bg-purple-100 text-purple-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Panel de Control</span>
+            <h2 class="text-2xl font-black text-gray-900 mt-1">Módulo de Reportes & Auditoría</h2>
+          </div>
+          <!-- Botones de Exportación -->
+          <div class="flex items-center space-x-2">
+            <button onclick="exportAdminReport('excel')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1">
+              <span>📊 Exportar Excel</span>
+            </button>
+            <button onclick="exportAdminReport('pdf')" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center space-x-1">
+              <span>📄 Exportar PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pestañas de Reportes -->
+        <div class="flex border-b border-gray-200 mt-4 overflow-x-auto">
+          <button onclick="switchAdminTab('inventario')" data-report="inventario" class="admin-tab-btn px-4 py-2 font-bold text-amber-600 border-b-2 border-amber-600">
+            📦 Inventario & Stock
+          </button>
+          <button onclick="switchAdminTab('pedidos')" data-report="pedidos" class="admin-tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-800">
+            🧾 Pedidos
+          </button>
+          <button onclick="switchAdminTab('ventas')" data-report="ventas" class="admin-tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-800">
+            💰 Ventas & Facturación
+          </button>
+          <button onclick="switchAdminTab('auditoria')" data-report="auditoria" class="admin-tab-btn px-4 py-2 font-medium text-gray-500 hover:text-gray-800">
+            🛡️ Logs de Auditoría
+          </button>
+        </div>
+
+        <!-- Contenedor de la Tabla -->
+        <div id="admin-report-table-container" class="mt-6">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ============================================== -->
+  <!-- MODAL: AUTENTICACIÓN (LOGIN / REGISTRO)        -->
+  <!-- ============================================== -->
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative fade-in border border-amber-100">
+      <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+      
+      <!-- Selector Tabs -->
+      <div class="flex border-b border-gray-200 mb-6">
+        <button id="tab-btn-login" onclick="toggleAuthTab('login')" class="flex-1 py-2 font-bold text-amber-600 border-b-2 border-amber-600">
+          Iniciar Sesión
+        </button>
+        <button id="tab-btn-register" onclick="toggleAuthTab('register')" class="flex-1 py-2 font-medium text-gray-500 hover:text-gray-800">
+          Crear Cuenta
+        </button>
+      </div>
+
+      <!-- Form Login -->
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label>
+          <input type="email" id="login-email" required placeholder="tu@correo.com" class="w-full p-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Contraseña</label>
+          <input type="password" id="login-password" required placeholder="••••••••" class="w-full p-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-sm shadow-md transition">
+          Ingresar al Sistema
+        </button>
+      </form>
+
+      <!-- Form Register -->
+      <form id="form-register" onsubmit="handleRegister(event)" class="hidden space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
+          <input type="text" id="reg-nombre" required placeholder="Juan Pérez" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Correo Electrónico</label>
+          <input type="email" id="reg-email" required placeholder="juan@correo.com" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Contraseña</label>
+          <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Teléfono Móvil</label>
+          <input type="text" id="reg-telefono" placeholder="300 123 4567" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Dirección de Entrega</label>
+          <input type="text" id="reg-direccion" placeholder="Calle 123 # 45-67" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-sm shadow-md transition">
+          Registrarme y Comenzar
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: PERSONALIZACIÓN & TOPPINGS (MÓDULO 2)   -->
+  <!-- ============================================== -->
+  <div id="customize-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative fade-in border border-amber-100 max-h-[90vh] overflow-y-auto">
+      <button onclick="closeCustomizeModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+
+      <div class="mb-4">
+        <span class="text-xs font-bold text-amber-700 uppercase tracking-wide">Personaliza tu Pedido</span>
+        <h3 id="modal-custom-title" class="text-2xl font-black text-gray-900 mt-1">Nombre Arepa</h3>
+        <p id="modal-custom-desc" class="text-xs text-gray-500 mt-1"></p>
+        <div class="mt-2 text-sm font-semibold text-gray-700">
+          Precio base: <span id="modal-custom-baseprice" class="text-amber-700 font-extrabold text-base">$0</span>
+        </div>
+        <label class="block mt-4 text-sm font-semibold text-gray-700">
+          Presentación
+          <select id="custom-presentation" onchange="recalculateModalPrice()" class="w-full mt-1 p-2 rounded-xl border border-gray-300">
+            <option value="individual">Individual</option>
+            <option value="paquete">Paquete x5</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- Selector de Toppings -->
+      <div id="modal-toppings-section" class="space-y-2 mt-4 pt-4 border-t border-gray-100">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500">Elige tus Toppings / Adicionales:</h4>
+        <div id="modal-toppings-list" class="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <!-- Renderizado dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Selector de Unidades -->
+      <div class="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between">
+        <span id="custom-quantity-label" class="text-sm font-bold text-gray-800">Cantidad:</span>
+        <div class="flex items-center space-x-3 bg-gray-100 p-1 rounded-xl">
+          <button onclick="changeQuantity(-1)" class="w-8 h-8 rounded-lg bg-white shadow-sm font-bold text-gray-700 hover:bg-amber-50">-</button>
+          <input type="number" id="custom-quantity" value="1" min="1" readonly class="w-10 text-center font-bold bg-transparent text-sm">
+          <button onclick="changeQuantity(1)" class="w-8 h-8 rounded-lg bg-white shadow-sm font-bold text-gray-700 hover:bg-amber-50">+</button>
+        </div>
+      </div>
+
+      <!-- Subtotal Dinámico y Botón Agregar -->
+      <div class="mt-6 pt-4 border-t border-gray-200 flex items-center justify-between gap-4">
+        <div>
+          <span class="text-xs text-gray-400 block font-medium">Subtotal calculado:</span>
+          <span id="modal-custom-subtotal" class="text-2xl font-black text-amber-600">$0</span>
+        </div>
+        <button onclick="addCurrentToCart()" class="flex-1 py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-2xl shadow-md transition text-sm">
+          🛒 Agregar al Carrito
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- DRAWER: CARRITO DE COMPRAS (MÓDULO 2 & 3)      -->
+  <!-- ============================================== -->
+  <div id="cart-drawer" class="hidden fixed inset-0 z-50 overflow-hidden modal-backdrop">
+    <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col justify-between p-6">
+        
+        <!-- Header Carrito -->
+        <div>
+          <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+            <div class="flex items-center space-x-2">
+              <span class="text-2xl">🛒</span>
+              <h3 class="text-lg font-black text-gray-900">Carrito de Compras</h3>
+            </div>
+            <button onclick="closeCartDrawer()" class="text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="cart-empty-state" class="text-center py-16 space-y-3">
+            <span class="text-5xl">🫓</span>
+            <p class="text-sm font-medium text-gray-500">Tu carrito está vacío.</p>
+            <button onclick="closeCartDrawer()" class="text-xs font-bold text-amber-600 hover:underline">
+              Explorar el menú de arepas ➔
+            </button>
+          </div>
+
+          <!-- Items Container -->
+          <div id="cart-items-container" class="mt-4 space-y-3 overflow-y-auto max-h-[50vh] pr-1">
+            <!-- Renderizado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Footer Desglose y Checkout -->
+        <div id="cart-footer" class="border-t border-gray-200 pt-4 space-y-3">
+          <div class="space-y-1.5 text-xs text-gray-600">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="cart-subtotal" class="font-bold text-gray-800">$0</span>
+            </div>
+            <div class="flex justify-between">
+              <span>IVA (19%):</span>
+              <span id="cart-iva" class="font-bold text-gray-800">$0</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Costo de Envío:</span>
+              <span id="cart-shipping" class="font-bold text-gray-800">$5.000</span>
+            </div>
+            <div class="flex justify-between text-base font-black text-gray-900 pt-2 border-t border-gray-100">
+              <span>Total a Pagar:</span>
+              <span id="cart-total" class="text-amber-700">$0</span>
+            </div>
+          </div>
+          <button id="btn-proceed-checkout" onclick="startCheckout()" class="w-full py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white rounded-xl font-bold shadow-md transition">
+            Confirmar y Proceder al Pago
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: CHECKOUT & DIRECCIÓN (MÓDULO 3)         -->
+  <!-- ============================================== -->
+  <div id="checkout-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative fade-in border border-amber-100">
+      <button onclick="closeCheckoutModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+      <h3 class="text-xl font-black text-gray-900 mb-1">Confirmación de Pedido</h3>
+      <p class="text-xs text-gray-500 mb-5">Verificaremos el inventario en SQL Server antes de realizar el cobro.</p>
+
+      <form onsubmit="handleConfirmOrder(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Dirección de Entrega</label>
+          <input type="text" id="checkout-address" required placeholder="Carrera 15 # 85-30, Apto 502" class="w-full p-3 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-amber-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Método de Pago</label>
+          <select id="checkout-payment-method" class="w-full p-3 rounded-xl border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-amber-500">
+            <option value="Tarjeta de Crédito">💳 Tarjeta de Crédito / Débito</option>
+            <option value="PSE">🏦 Transferencia Bancaria PSE</option>
+            <option value="Nequi">📱 Nequi / Daviplata</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 active:scale-95 text-white font-bold rounded-xl text-sm shadow-md transition">
+          Continuar a Pasarela de Pagos ➔
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: PASARELA DE PAGOS INTERACTIVA (MÓDULO 3) -->
+  <!-- ============================================== -->
+  <div id="gateway-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative fade-in border border-gray-200">
+      <div class="text-center space-y-2 mb-6">
+        <span class="text-4xl">🔒</span>
+        <h3 class="text-xl font-black text-gray-900">Pasarela Segura de Pagos</h3>
+        <p class="text-xs text-gray-500">Pedido #<span id="gateway-order-id" class="font-bold">0</span> | Monto Total: <span id="gateway-amount" class="font-extrabold text-amber-700">$0</span></p>
+      </div>
+
+      <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-xs text-gray-600 space-y-2 mb-6">
+        <div class="flex justify-between">
+          <span>Estado del Pedido:</span>
+          <span class="font-bold text-amber-600">Pendiente de Pago</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Seguridad:</span>
+          <span class="font-bold text-emerald-600">Encriptación SSL 256-bit</span>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="executePayment(false)" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+          <span>✅ Simular Pago Aprobado</span>
+        </button>
+        <button onclick="executePayment(true)" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-xl text-sm border border-rose-200 transition">
+          ❌ Simular Pago Rechazado (Fallo de Fondos)
+        </button>
+        <button onclick="closePaymentGatewayModal()" class="w-full py-2 text-gray-400 hover:text-gray-600 text-xs font-semibold">
+          Cancelar y Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: ÉXITO Y FACTURA ELECTRÓNICA (MÓDULO 3) -->
+  <!-- ============================================== -->
+  <div id="success-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 text-center relative fade-in border border-emerald-100">
+      <span class="text-5xl">🎉</span>
+      <h3 class="text-2xl font-black text-gray-900 mt-3">¡Pago Exitoso!</h3>
+      <p class="text-xs text-gray-500 mt-1">Tu orden está en preparación y el inventario ha sido actualizado en SQL Server.</p>
+
+      <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 my-5 text-sm">
+        <span class="text-xs text-emerald-700 block font-semibold">Número de Factura Electrónica:</span>
+        <span id="success-invoice-num" class="text-lg font-black text-emerald-900">FAC-2026-000001</span>
+      </div>
+
+      <p class="text-xs text-gray-500 mb-6">Hemos enviado la factura en formato PDF a tu correo electrónico registrado.</p>
+
+      <div class="space-y-3">
+        <button id="success-pdf-link" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm shadow-md transition flex items-center justify-center space-x-2">
+          <span>📄 Descargar Factura PDF Ahora</span>
+        </button>
+        <button onclick="closeSuccessModal()" class="w-full py-2.5 text-gray-600 hover:text-gray-800 text-sm font-semibold">
+          Ir a Mis Pedidos ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- MODAL: EDITAR COMENTARIO (MÓDULO 4)            -->
+  <!-- ============================================== -->
+  <div id="edit-review-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 relative fade-in border border-amber-100">
+      <button onclick="closeEditReviewModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+      <h3 class="text-lg font-black text-gray-900 mb-3">Editar mi Opinión</h3>
+      <form onsubmit="handleSaveEditedReview(event)" class="space-y-4">
+        <input type="hidden" id="edit-review-id">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Calificación</label>
+          <select id="edit-review-rating" class="w-full p-2.5 rounded-xl border border-gray-300 text-sm bg-white">
+            <option value="5">⭐⭐⭐⭐⭐ 5 Estrellas</option>
+            <option value="4">⭐⭐⭐⭐ 4 Estrellas</option>
+            <option value="3">⭐⭐⭐ 3 Estrellas</option>
+            <option value="2">⭐⭐ 2 Estrellas</option>
+            <option value="1">⭐ 1 Estrella</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Texto del Comentario</label>
+          <textarea id="edit-review-text" rows="3" required class="w-full p-3 rounded-xl border border-gray-300 text-sm"></textarea>
+        </div>
+        <button type="submit" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition">
+          Guardar Cambios
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
