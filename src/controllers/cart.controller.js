@@ -1,5 +1,6 @@
 const { sql, poolPromise } = require('../config/database');
 const { success, error } = require('../utils/responseHandler');
+const { calculateCartTotals } = require('../utils/pricing');
 
 /**
  * Valida los ítems del carrito, calculando precios en vivo con toppings y stock
@@ -98,10 +99,10 @@ exports.validateCart = async (req, res, next) => {
       });
     }
 
-    const ivaPorcentaje = parseFloat(process.env.IVA_PORCENTAJE) || 0.19;
-    const costoEnvio = parseFloat(process.env.COSTO_ENVIO) || 5000.00;
-    const impuestoIVA = subtotalGeneral * ivaPorcentaje;
-    const total = subtotalGeneral + impuestoIVA + costoEnvio;
+    const { ivaPorcentaje, impuestoIVA, costoEnvio, total } = calculateCartTotals(
+      subtotalGeneral,
+      process.env
+    );
 
     return success(res, {
       items: validatedItems,

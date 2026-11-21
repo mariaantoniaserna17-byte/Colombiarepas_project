@@ -91,7 +91,7 @@ trabajomaria/
    ```
 
 El servidor Express levantará tanto la API como la interfaz Web (Frontend integrado):
-- **Frontend Web interactivo:** Abre tu navegador en **`http://localhost:3000`**
+- **Frontendv Web interactivo:** Abre tu navegador en **`http://localhost:3000`**
 - **API REST:** `http://localhost:3000/api`
 - **Health Check:** `http://localhost:3000/api/health`
 

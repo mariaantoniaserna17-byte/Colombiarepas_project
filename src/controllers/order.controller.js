@@ -3,6 +3,7 @@ const { success, error } = require('../utils/responseHandler');
 const { logAudit } = require('../middlewares/audit.middleware');
 const { generateInvoicePDF } = require('../services/pdf.service');
 const { sendInvoiceEmail } = require('../services/email.service');
+const { calculateCartTotals } = require('../utils/pricing');
 
 /**
  * Confirmación inicial del pedido y reserva bajo transacción SQL Server
@@ -89,10 +90,10 @@ exports.createOrder = async (req, res, next) => {
       });
     }
 
-    const ivaPorcentaje = parseFloat(process.env.IVA_PORCENTAJE) || 0.19;
-    const costoEnvio = parseFloat(process.env.COSTO_ENVIO) || 5000.00;
-    const impuestoIVA = subtotalCalculado * ivaPorcentaje;
-    const total = subtotalCalculado + impuestoIVA + costoEnvio;
+    const { impuestoIVA, costoEnvio, total } = calculateCartTotals(
+      subtotalCalculado,
+      process.env
+    );
 
     // 2. Insertar Encabezado de Pedido (Estado 1: 'Pendiente')
     const orderReq = new sql.Request(transaction);
